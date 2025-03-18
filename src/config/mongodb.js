@@ -20,6 +20,7 @@ const connectToMongoDB = () =>{
 }
 
 
+
 //=========  we can also write like this  ==========//
 // const connectToMongoDB = async() =>{
 //     try {
@@ -31,6 +32,10 @@ const connectToMongoDB = () =>{
         
 //     }
 // }
+
+export const getClient = () =>{
+    return client;
+}
 
 export const getDB = () =>{
     return client.db('ecomdb');
