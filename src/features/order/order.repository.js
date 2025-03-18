@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { getDB } from "../../config/mongodb";
+import { getDB } from "../../config/mongodb.js";
 
 export default class OrderRepository{
         constructor(){
@@ -7,6 +7,8 @@ export default class OrderRepository{
         }
 
         async placeOrder(userId){
+
+            await this.getTotalAmount(userId)
             //1 . Get CartItems and calculate total Amt
 
             //2. Create an order record.
@@ -19,9 +21,9 @@ export default class OrderRepository{
 
         async getTotalAmount(userId) {
             const db = getDB();
-            db.collection("cartItems").aggregate[{
+            const items = await db.collection("cartItems").aggregate([
+            {
                 //1. Get Cart items for the user
-
                 $match : {userID : new ObjectId(userId)}
             },
             //2. Get the Products from Products Collection.
@@ -33,10 +35,24 @@ export default class OrderRepository{
                     as:"ProductInfo"
 
                 }
-
             },
-            //unwind the ProductI
+            //3. unwind the Prductinfo
+            {
+                $unwind : "$ProductInfo"
+            },
+            //4. CALCULATE  TotalAmount  FOR  EACH CartItems.
+            {
+                $addFields:{
+                    "totalAmount":{
+                        $multiply : ["$ProductInfo.price","$quantity"]
+
+                    }
+                }
+            }
+        ]).toArray();
+        const FinalTotalAmount = items.reduce((acc, item)=> acc + item.totalAmount, 0);
+
+        console.log(FinalTotalAmount);
         
-        ]
     }
 }
